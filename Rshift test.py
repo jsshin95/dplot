@@ -116,7 +116,7 @@ def btnLoadClick():
         temp.append(str(i))
         temp.append('')
         temp.append('')
-        temp.append('')
+        #temp.append('')
     writer.writerow(temp)
     
     del temp[0:]
@@ -130,7 +130,7 @@ def btnLoadClick():
         elif i==6: temp.append('R1-R0')
         elif i==8: temp.append('R1-R0')
         else: temp.append('R1-R0 [%]')
-        temp.append('Spec IN/OUT')
+        #temp.append('Spec IN/OUT')
     writer.writerow(temp)
 
     writer2.writerow(['file명','step','Design','No.','R0','R1','R1-R0','Spec IN/OUT'])
@@ -181,6 +181,8 @@ def btnLoadClick():
                                 if temp[-1]=='IN': A[k][(6-n)*4 + i - 1][(15-m)*8 + 8-j]='P'
                                 elif temp[-1]=='OUT': A[k][(6-n)*4 + i - 1][(15-m)*8 + 8-j]='F'
                                 elif temp[-1]=='MISS': A[k][(6-n)*4 + i - 1][(15-m)*8 + 8-j]='M'
+                            
+                            temp.pop()
 
                         writer.writerow(temp)
             elif i==2:
@@ -229,6 +231,9 @@ def btnLoadClick():
                                 if temp[-1]=='IN': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='P'
                                 elif temp[-1]=='OUT': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='F'
                                 elif temp[-1]=='MISS': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='M'
+                            
+                            temp.pop()
+
                         writer.writerow(temp)
             elif i==3:
                 for n in range(8):
@@ -276,6 +281,9 @@ def btnLoadClick():
                                 if temp[-1]=='IN': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='P'
                                 elif temp[-1]=='OUT': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='F'
                                 elif temp[-1]=='MISS': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='M'
+                            
+                            temp.pop()
+
                         writer.writerow(temp)
             elif i==4:
                 for n in range(8):
@@ -323,18 +331,32 @@ def btnLoadClick():
                                 if temp[-1]=='IN': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='P'
                                 elif temp[-1]=='OUT': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='F'
                                 elif temp[-1]=='MISS': A[k][(7-n)*4 + i - 1][m*8 + 8-j]='M'
+                            
+                            temp.pop()
+
                         writer.writerow(temp)
     
     f.close()
     fmo.close()
 
+    for i in range(31):
+        for j in range(128):
+            result='P'
+            for k in range(9):
+                if A[k][i][j]=='M': result='M'
+            for k in range(9):
+                if A[k][i][j]=='F': result='F'
+            A[9][i][j]=result
+
+
     lb.delete(0,tk.END)
     for i in range(9):
         lb.insert(i, str(i+1))
+    lb.insert(9, 'total')
     
     lb.bind("<<ListboxSelect>>", OnSelect)
     checkbutton.place(x=950, y=120, width=80, height=20)
-    button_capture.place(x=800,y=390,width=60,height=25)
+    button_capture.place(x=860,y=115,width=60,height=25)
       
     return
 
@@ -345,9 +367,10 @@ def capture():
     y2=y1 + 217*1.25
     box=(x1,y1,x2,y2)
     img=ImageGrab.grab(box)
-    img.save(str(lb.curselection()[0]+1)+'.png')
+    if lb.curselection()[0]==9: img.save('total.png')
+    else: img.save(str(lb.curselection()[0]+1)+'.png')
 
-A=[[['' for _ in range(128)] for _ in range(31)] for _ in range(9)]
+A=[[['' for _ in range(128)] for _ in range(31)] for _ in range(10)]
 cwd=os.getcwd()
 
 win=tk.Tk()
