@@ -1,10 +1,13 @@
 import tkinter as tk
+import tkinter.ttk
 import pandas as pd
 from datetime import datetime
 from tkinter import messagebox
 import csv
 import os
 from PIL import ImageGrab
+import numpy as np
+from tkinter import filedialog
 
 def isNan(value):
     return value != value
@@ -47,13 +50,6 @@ def btnLoadClick():
         label_miss.place(x=45, y=455, width=200, height=20)
 
 
-    os.chdir(cwd)
-
-    folderR0=entry_folderR0.get()
-    folderR1=entry_folderR1.get()
-    fileR0=entry_fileR0.get()
-    fileR1=entry_fileR1.get()
-
     df0=[]
     df1=[]
     del df0[0:]
@@ -62,17 +58,56 @@ def btnLoadClick():
     for i in range(1,5):
         for j in range(1,9):
             try:
-                df0.append(pd.read_csv(folderR0+'/'+fileR0+str(i)+str(j)+'1.csv'))
+                df0.append(pd.read_csv(label_filename_R0['text'][:-7]+str(i)+str(j)+'1.csv'))
+                len_row=len(df0[-1].index)
+                if cb_input_type.get()=='type1':
+                    if i==1:
+                        if len_row<113:
+                            for _ in range(113-len_row):
+                                df0[-1].loc[len(df0[-1].index)]=pd.Series([np.nan]*9, index=df0[-1].columns)
+                    else:
+                        if len_row<129:
+                            for _ in range(129-len_row):
+                                df0[-1].loc[len(df0[-1].index)]=pd.Series([np.nan]*9, index=df0[-1].columns)
+                elif cb_input_type.get()=='type2':
+                    if i==1:
+                        if len_row<224:
+                            for _ in range(224-len_row):
+                                df0[-1].loc[len(df0[-1].index)]=pd.Series([np.nan]*13, index=df0[-1].columns)
+                    else:
+                        if len_row<256:
+                            for _ in range(256-len_row):
+                                df0[-1].loc[len(df0[-1].index)]=pd.Series([np.nan]*13, index=df0[-1].columns)
             except:
-                messagebox.showwarning(title="error (input : R0)", message="failed to open "+folderR0+'/'+fileR0+str(i)+str(j)+'1.csv')
+                messagebox.showwarning(title="error (input : R0)", message="failed to open "+label_filename_R0['text'][:-7]+str(i)+str(j)+'1.csv')
                 return
+            
             try:
-                df1.append(pd.read_csv(folderR1+'/'+fileR1+str(i)+str(j)+'1.csv'))
+                df1.append(pd.read_csv(label_filename_R1['text'][:-7]+str(i)+str(j)+'1.csv'))
+                len_row=len(df1[-1].index)
+                if cb_input_type.get()=='type1':
+                    if i==1:
+                        if len_row<113:
+                            for _ in range(113-len_row):
+                                df1[-1].loc[len(df1[-1].index)]=pd.Series([np.nan]*9, index=df1[-1].columns)
+                    else:
+                        if len_row<129:
+                            for _ in range(129-len_row):
+                                df1[-1].loc[len(df1[-1].index)]=pd.Series([np.nan]*9, index=df1[-1].columns)
+                elif cb_input_type.get()=='type2':
+                    if i==1:
+                        if len_row<224:
+                            for _ in range(224-len_row):
+                                df1[-1].loc[len(df1[-1].index)]=pd.Series([np.nan]*13, index=df1[-1].columns)
+                    else:
+                        if len_row<256:
+                            for _ in range(256-len_row):
+                                df1[-1].loc[len(df1[-1].index)]=pd.Series([np.nan]*13, index=df1[-1].columns)
             except:
-                messagebox.showwarning(title="error (input : R1)", message="failed to open "+folderR1+'/'+fileR1+str(i)+str(j)+'1.csv')
+                messagebox.showwarning(title="error (input : R1)", message="failed to open "+label_filename_R1['text'][:-7]+str(i)+str(j)+'1.csv')
                 return
 
-    
+    os.chdir(cwd)
     
     if os.path.exists('Rshift result')==False:
         try:
@@ -142,14 +177,23 @@ def btnLoadClick():
                 for n in range(7):
                     for m in range(16):
                         del temp[0:]
+                        
                         temp.append(str(i)+str(j)+'1') #file명
                         temp.append((n+1)*16+m+1) #step
                         if n==0: temp.append(5)  #design
                         elif n==6: temp.append(1)
                         else: temp.append(n)
                         for k in range(9):
-                            temp.append(df0[j-1].iloc[n*16+m+1].values[k]) #R0
-                            temp.append(df1[j-1].iloc[n*16+m+1].values[k]) #R1
+                            if cb_input_type.get()=='type1':
+                                temp.append(df0[j-1].iloc[n*16+m+1].values[k]) #R0
+                                temp.append(df1[j-1].iloc[n*16+m+1].values[k]) #R1
+                            elif cb_input_type.get()=='type2':
+                                temp.append(df0[j-1].iloc[2*n*16+2*m+1].values[k+4]) #R0
+                                temp.append(df1[j-1].iloc[2*n*16+2*m+1].values[k+4]) #R1
+                            else:
+                                messagebox.showwarning(title="error", message="type error")
+                                return
+                            
                             if (k<2)|(k==6)|(k==8): 
                                 if isNan(temp[-1])|isNan(temp[-2]): temp.append('MISS')
                                 else: temp.append(float(temp[-1])-float(temp[-2])) #R1-R0
@@ -195,8 +239,16 @@ def btnLoadClick():
                         elif n>=6: temp.append(n-5)
                         else: temp.append(n)
                         for k in range(9):
-                            temp.append(df0[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R0
-                            temp.append(df1[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R1
+                            if cb_input_type.get()=='type1':
+                                temp.append(df0[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R0
+                                temp.append(df1[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R1
+                            elif cb_input_type.get()=='type2':
+                                temp.append(df0[(i-1)*8+j-1].iloc[2*n*16+2*m+1].values[k+4]) #R0
+                                temp.append(df1[(i-1)*8+j-1].iloc[2*n*16+2*m+1].values[k+4]) #R1
+                            else:
+                                messagebox.showwarning(title="error", message="type error")
+                                return
+                            
                             if (k<2)|(k==6)|(k==8):
                                 if isNan(temp[-1])|isNan(temp[-2]): temp.append('MISS')
                                 else: temp.append(float(temp[-1])-float(temp[-2])) #R1-R0
@@ -245,8 +297,16 @@ def btnLoadClick():
                         elif n>=5: temp.append(n-4)
                         else: temp.append(n+1)
                         for k in range(9):
-                            temp.append(df0[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R0
-                            temp.append(df1[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R1
+                            if cb_input_type.get()=='type1':
+                                temp.append(df0[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R0
+                                temp.append(df1[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R1
+                            elif cb_input_type.get()=='type2':
+                                temp.append(df0[(i-1)*8+j-1].iloc[2*n*16+2*m+1].values[k+4]) #R0
+                                temp.append(df1[(i-1)*8+j-1].iloc[2*n*16+2*m+1].values[k+4]) #R1
+                            else:
+                                messagebox.showwarning(title="error", message="type error")
+                                return
+                            
                             if (k<2)|(k==6)|(k==8):
                                 if isNan(temp[-1])|isNan(temp[-2]): temp.append('MISS')
                                 else: temp.append(float(temp[-1])-float(temp[-2])) #R1-R0
@@ -295,8 +355,16 @@ def btnLoadClick():
                         elif n>=4: temp.append(n-3)
                         else: temp.append(n+2)
                         for k in range(9):
-                            temp.append(df0[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R0
-                            temp.append(df1[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R1
+                            if cb_input_type.get()=='type1':
+                                temp.append(df0[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R0
+                                temp.append(df1[(i-1)*8+j-1].iloc[n*16+m+1].values[k]) #R1
+                            elif cb_input_type.get()=='type2':
+                                temp.append(df0[(i-1)*8+j-1].iloc[2*n*16+2*m+1].values[k+4]) #R0
+                                temp.append(df1[(i-1)*8+j-1].iloc[2*n*16+2*m+1].values[k+4]) #R1
+                            else:
+                                messagebox.showwarning(title="error", message="type error")
+                                return
+                            
                             if (k<2)|(k==6)|(k==8):
                                 if isNan(temp[-1])|isNan(temp[-2]): temp.append('MISS')
                                 else: temp.append(float(temp[-1])-float(temp[-2])) #R1-R0
@@ -370,12 +438,31 @@ def capture():
     if lb.curselection()[0]==9: img.save('total.png')
     else: img.save(str(lb.curselection()[0]+1)+'.png')
 
+def btnFnR0Click():
+    try:
+        fi_temp=filedialog.askopenfilename(title = 'select input file (R0)', filetypes=(('*.csv','*csv'),))
+        R0_dir=fi_temp[:-7]
+    except:
+        messagebox.showwarning(title="error", message="failed to load input file (R0)")
+        return
+    label_filename_R0.config(text=R0_dir+'xx1.csv')
+
+def btnFnR1Click():
+    try:
+        fi_temp=filedialog.askopenfilename(title = 'select input file (R1)', filetypes=(('*.csv','*csv'),))
+        R1_dir=fi_temp[:-7]
+    except:
+        messagebox.showwarning(title="error", message="failed to load input file (R1)")
+        return
+    label_filename_R1.config(text=R1_dir+'xx1.csv')
+
+
 A=[[['' for _ in range(128)] for _ in range(31)] for _ in range(10)]
 cwd=os.getcwd()
 
 win=tk.Tk()
 win.geometry('1200x600+100+100')
-win.title("Rshift test")
+win.title("Rshift ver.1.1.")
 
 canvas=tk.Canvas(win, relief="solid", bg="white")
 canvas.place(x=25,y=150,width=128*7,height=31*7)
@@ -383,31 +470,25 @@ canvas.place(x=25,y=150,width=128*7,height=31*7)
 lb=tk.Listbox(win)
 lb.place(x=950, y=150, width=80, height=400)
 
-label_fnR0=tk.Label(win,text="R0 폴더명 / 파일명 :")
-label_fnR1=tk.Label(win,text="R1 폴더명 / 파일명 :")
-entry_folderR0=tk.Entry(win)
-entry_folderR1=tk.Entry(win)
-label_slash0=tk.Label(win,text="/")
-label_slash1=tk.Label(win,text="/")
-entry_fileR0=tk.Entry(win)
-entry_fileR1=tk.Entry(win)
+label_input_type=tk.Label(win, text="input type : ")
+label_input_type.place(x=10,y=10,width=90,height=25)
+
+cb_input_type=tk.ttk.Combobox(win, height=25, values=['type1','type2'], state='readonly')
+cb_input_type.place(x=105,y=10,width=80,height=25)
+
+
+button_fnR0=tk.Button(win,text="R0 파일 선택 ",command=btnFnR0Click)
+button_fnR1=tk.Button(win,text="R1 파일 선택 ",command=btnFnR1Click)
+label_filename_R0=tk.Label(win, text='')
+label_filename_R1=tk.Label(win, text='')
 label_csv0=tk.Label(win,text='xx1.csv')
 label_csv1=tk.Label(win,text='xx1.csv')
 
-label_fnR0.place(x=10,y=50,width=150,height=25)
-label_fnR1.place(x=10,y=80,width=150,height=25)
+button_fnR0.place(x=10,y=50,width=150,height=25)
+button_fnR1.place(x=10,y=80,width=150,height=25)
 
-entry_folderR0.place(x=160,y=50,width=120,height=25)
-entry_folderR1.place(x=160,y=80,width=120,height=25)
-
-label_slash0.place(x=280,y=50,width=20,height=25)
-label_slash1.place(x=280,y=80,width=20,height=25)
-
-entry_fileR0.place(x=300,y=50,width=200,height=25)
-entry_fileR1.place(x=300,y=80,width=200,height=25)
-
-label_csv0.place(x=500,y=50,width=50,height=25)
-label_csv1.place(x=500,y=80,width=50,height=25)
+label_filename_R0.place(x=160,y=50,width=390,height=25)
+label_filename_R1.place(x=160,y=80,width=390,height=25)
 
 button_load=tk.Button(win,text="load",command=btnLoadClick)
 button_load.place(x=560,y=60,width=80,height=30)
